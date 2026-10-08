@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="../FiapCloudGames.Promotions.Application/FiapCloudGames.Promotions.Application.csproj" />
+    <PackageReference Include="FiapCloudGames.BuildingBlocks" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>

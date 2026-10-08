@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FiapCloudGames.Promotions.Api/FiapCloudGames.Promotions.Api.csproj" />
+    <Project Path="src/FiapCloudGames.Promotions.Application/FiapCloudGames.Promotions.Application.csproj" />
+    <Project Path="src/FiapCloudGames.Promotions.Domain/FiapCloudGames.Promotions.Domain.csproj" />
+    <Project Path="src/FiapCloudGames.Promotions.Infrastructure/FiapCloudGames.Promotions.Infrastructure.csproj" />
+    <Project Path="src/FiapCloudGames.Promotions.Presentation/FiapCloudGames.Promotions.Presentation.csproj" />
+    <Project Path="src/FiapCloudGames.Promotions.Migrations/FiapCloudGames.Promotions.Migrations.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FiapCloudGames.Promotions.ArchitectureTests/FiapCloudGames.Promotions.ArchitectureTests.csproj" />
+    <Project Path="tests/FiapCloudGames.Promotions.IntegrationTests/FiapCloudGames.Promotions.IntegrationTests.csproj" />
+    <Project Path="tests/FiapCloudGames.Promotions.Database.IntegrationTests/FiapCloudGames.Promotions.Database.IntegrationTests.csproj" />
+    <Project Path="tests/FiapCloudGames.Promotions.UnitTests/FiapCloudGames.Promotions.UnitTests.csproj" />
+  </Folder>
+</Solution>

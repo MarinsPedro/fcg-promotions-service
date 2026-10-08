@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="../FiapCloudGames.Promotions.Infrastructure/FiapCloudGames.Promotions.Infrastructure.csproj" />
+    <ProjectReference Include="../FiapCloudGames.Promotions.Presentation/FiapCloudGames.Promotions.Presentation.csproj" />
+    <PackageReference Include="FiapCloudGames.BuildingBlocks" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+</Project>
