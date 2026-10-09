@@ -62,7 +62,7 @@ Em `Development`, a interface Swagger fica disponível em `http://localhost:5083
 | `POST` | `/internal/v1/campaigns` | service + `promotions.campaigns.write` | cria campanha |
 | `GET` | `/internal/v1/campaigns/{id}` | service + `promotions.campaigns.read` | consulta campanha |
 | `DELETE` | `/internal/v1/campaigns/{id}` | service + `promotions.campaigns.write` | desativa campanha |
-| `POST` | `/internal/promotions/calculate` | service + `promotions.calculate` | calcula desconto |
+| `POST` | `/internal/v1/promotions/calculate` | service + `promotions.calculate` | calcula desconto |
 | `GET` | `/health/live` | anônimo | liveness |
 | `GET` | `/health/ready` | anônimo | readiness |
 
