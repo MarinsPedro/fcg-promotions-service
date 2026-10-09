@@ -158,6 +158,56 @@ a imagem com target `migrations` antes de iniciar a API.
 Todos os endpoints de negócio são autenticados por padrão. Somente health checks
 aceitam chamadas anônimas.
 
+## Contrato de cálculo de desconto
+
+O endpoint `POST /internal/v1/promotions/calculate` é o contrato principal
+consumido pelo Orders Service durante o fluxo de compra.
+
+**Request:**
+
+```json
+{
+  "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
+  "basePrice": 99.90,
+  "currency": "BRL",
+  "calculatedAt": "2026-09-24T18:00:00Z"
+}
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `gameId` | UUID | Identificador do jogo (obtido do Catalog) |
+| `basePrice` | decimal | Preço-base do jogo (obtido do Catalog) |
+| `currency` | string | Código ISO da moeda |
+| `calculatedAt` | datetime UTC | Momento do cálculo (para verificar vigência da campanha) |
+
+**Response (200 OK):**
+
+```json
+{
+  "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
+  "basePrice": 99.90,
+  "discount": 15.00,
+  "finalPrice": 84.90,
+  "currency": "BRL",
+  "appliedCampaignId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "appliedCampaignName": "Promoção de Inverno"
+}
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `gameId` | UUID | Mesmo ID recebido |
+| `basePrice` | decimal | Preço original |
+| `discount` | decimal | Valor do desconto aplicado (`0` se nenhuma campanha elegível) |
+| `finalPrice` | decimal | Preço final (`basePrice - discount`, mínimo `0`) |
+| `currency` | string | Moeda |
+| `appliedCampaignId` | UUID? | ID da campanha aplicada (`null` se nenhuma) |
+| `appliedCampaignName` | string? | Nome da campanha (`null` se nenhuma) |
+
+Quando mais de uma campanha está vigente para o mesmo jogo, o serviço aplica
+a que resultar no maior desconto.
+
 ## Qualidade
 
 ```powershell
