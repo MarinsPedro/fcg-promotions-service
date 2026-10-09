@@ -1,4 +1,5 @@
 using FiapCloudGames.Promotions.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 
 namespace FiapCloudGames.Promotions.IntegrationTests.Support;
 
@@ -40,6 +44,42 @@ public sealed class PromotionsApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<IDbContextOptionsConfiguration<PromotionsDbContext>>();
             services.AddDbContext<PromotionsDbContext>(options =>
                 options.UseInMemoryDatabase(_databaseName));
+
+            services.AddAuthentication("Test")
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+            services.PostConfigure<AuthenticationOptions>(options =>
+            {
+                options.DefaultAuthenticateScheme = "Test";
+                options.DefaultChallengeScheme = "Test";
+            });
         });
+    }
+}
+
+internal sealed class TestAuthHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+{
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        if (!Request.Headers.ContainsKey("Authorization"))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Name, "integration-test"),
+            new Claim("scope", "promotions.calculate"),
+            new Claim("scope", "promotions.campaigns.read"),
+            new Claim("scope", "promotions.campaigns.write"),
+        };
+        var identity = new ClaimsIdentity(claims, "Test");
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, "Test");
+
+        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }
