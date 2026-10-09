@@ -34,7 +34,7 @@ public sealed class CampaignEndpointTests(PromotionsApiFactory factory)
         using var client = factory.CreateClient();
 
         using var response = await client.PostAsync(
-            "/internal/promotions/calculate",
+            "/internal/v1/promotions/calculate",
             new StringContent("{}", System.Text.Encoding.UTF8, "application/json"));
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace FiapCloudGames.Promotions.Presentation.Features.Calculate;
 
 [ApiController]
-[Route("internal/promotions")]
+[Route("internal/v1/promotions")]
 public sealed class CalculatePromotionController : ControllerBase
 {
     [HttpPost("calculate")]

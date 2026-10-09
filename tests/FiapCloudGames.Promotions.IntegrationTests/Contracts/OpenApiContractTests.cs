@@ -27,7 +27,7 @@ public sealed class OpenApiContractTests(PromotionsApiFactory factory)
 
         Assert.True(paths.TryGetProperty("/internal/v1/campaigns", out _));
         Assert.True(paths.TryGetProperty("/internal/v1/campaigns/{campaignId}", out _));
-        Assert.True(paths.TryGetProperty("/internal/promotions/calculate", out _));
+        Assert.True(paths.TryGetProperty("/internal/v1/promotions/calculate", out _));
 
         var securitySchemes = document.RootElement
             .GetProperty("components")
