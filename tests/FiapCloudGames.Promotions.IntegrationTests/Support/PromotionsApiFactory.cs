@@ -30,6 +30,7 @@ public sealed class PromotionsApiFactory : WebApplicationFactory<Program>
                     "Host=localhost;Database=integration;Username=test;Password=test",
                 ["Authentication:Authority"] = "https://localhost",
                 ["Authentication:Audience"] = "promotions-api",
+                ["Authentication:Issuer"] = "integration-issuer",
                 ["Logging:LogLevel:Default"] = "Warning"
             });
         });
