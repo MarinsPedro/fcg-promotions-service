@@ -23,13 +23,22 @@ public sealed class Campaign
         DiscountType = discountType is not DiscountType.Undefined && Enum.IsDefined(discountType)
             ? discountType
             : throw new DomainRuleViolationException("O tipo de desconto é inválido.");
-        DiscountValue = discountValue > 0
-            ? discountValue
-            : throw new DomainRuleViolationException("O valor do desconto deve ser maior que zero.");
+        if (discountValue <= 0)
+        {
+            throw new DomainRuleViolationException("O valor do desconto deve ser maior que zero.");
+        }
+
         if (discountType == DiscountType.Percentage && discountValue > 100)
         {
             throw new DomainRuleViolationException("O percentual de desconto não pode exceder 100.");
         }
+
+        if (discountType == DiscountType.Fixed && discountValue > 9999999999.99m)
+        {
+            throw new DomainRuleViolationException("O valor do desconto fixo não pode ser maior que 9999999999.99.");
+        }
+
+        DiscountValue = decimal.Round(discountValue, 2, MidpointRounding.ToEven);
         ValidatePeriod(startDateUtc, endDateUtc);
         StartDateUtc = startDateUtc;
         EndDateUtc = endDateUtc;

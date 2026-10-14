@@ -121,4 +121,76 @@ public sealed class CampaignTests
 
         Assert.False(campaign.IsActive);
     }
+
+    [Fact]
+    public void Create_WithFixedDiscountAboveMax_Throws()
+    {
+        Assert.Throws<DomainRuleViolationException>(() =>
+            Campaign.Create(
+                "Invalid",
+                DiscountType.Fixed,
+                10000000000m,
+                Now,
+                Now.AddDays(1),
+                null,
+                Now));
+    }
+
+    [Fact]
+    public void Create_WithFixedDiscountAtMax_Succeeds()
+    {
+        var campaign = Campaign.Create(
+            "Max Value",
+            DiscountType.Fixed,
+            9999999999.99m,
+            Now,
+            Now.AddDays(7),
+            null,
+            Now);
+
+        Assert.Equal(9999999999.99m, campaign.DiscountValue);
+    }
+
+    [Fact]
+    public void Create_RoundsDiscountValueToTwoDecimals()
+    {
+        var campaign = Campaign.Create(
+            "Rounded",
+            DiscountType.Fixed,
+            15.555m,
+            Now,
+            Now.AddDays(7),
+            null,
+            Now);
+
+        Assert.Equal(15.56m, campaign.DiscountValue);
+    }
+
+    [Fact]
+    public void Create_WithNegativeDiscount_Throws()
+    {
+        Assert.Throws<DomainRuleViolationException>(() =>
+            Campaign.Create(
+                "Invalid",
+                DiscountType.Fixed,
+                -5m,
+                Now,
+                Now.AddDays(1),
+                null,
+                Now));
+    }
+
+    [Fact]
+    public void Create_WithZeroDiscount_Throws()
+    {
+        Assert.Throws<DomainRuleViolationException>(() =>
+            Campaign.Create(
+                "Invalid",
+                DiscountType.Fixed,
+                0m,
+                Now,
+                Now.AddDays(1),
+                null,
+                Now));
+    }
 }
