@@ -29,7 +29,20 @@ tests/
   FiapCloudGames.Promotions.Database.IntegrationTests/
   FiapCloudGames.Promotions.IntegrationTests/
   FiapCloudGames.Promotions.UnitTests/
+docs/
+  architecture.md
+  configuration.md
+  endpoints.md
+  testing.md
 ```
+
+As regras e exemplos da estrutura estão em [docs/architecture.md](docs/architecture.md).
+O uso, os contratos e a ordem recomendada dos endpoints estão em
+[docs/endpoints.md](docs/endpoints.md).
+A estratégia e as fronteiras das suítes de teste estão em
+[docs/testing.md](docs/testing.md).
+As variáveis de ambiente e opções de produção estão em
+[docs/configuration.md](docs/configuration.md).
 
 ## Pré-requisitos
 
@@ -57,6 +70,16 @@ necessário:
 ```powershell
 Remove-Item Env:\GITHUB_PACKAGES_TOKEN
 ```
+
+Para testar alterações locais do Building Blocks sem publicar um NuGet,
+mantenha os repositórios como irmãos e use:
+
+```powershell
+dotnet build FiapCloudGames.Promotions.slnx -p:UseLocalBuildingBlocks=true
+```
+
+O padrão é `UseLocalBuildingBlocks=false`, portanto CI e produção continuam
+usando a versão publicada definida em `Directory.Packages.props`.
 
 ## Execução local com Docker Compose (recomendado)
 
@@ -141,8 +164,40 @@ dotnet ef migrations add NomeDaMigration `
   --output-dir Migrations
 ```
 
+O projeto suporta as duas ferramentas do EF Core:
+
+- `dotnet ef`, restaurado pelo tool manifest em `.config/dotnet-tools.json`;
+- Package Manager Console do Visual Studio, por meio de
+  `Microsoft.EntityFrameworkCore.Tools`.
+
+No Package Manager Console, use explicitamente o projeto de migrations como
+projeto de destino e de startup:
+
+```powershell
+Add-Migration NomeDaMigration `
+  -Project FiapCloudGames.Promotions.Migrations `
+  -StartupProject FiapCloudGames.Promotions.Migrations `
+  -OutputDir Migrations
+```
+
 O processo da API nunca executa migrations automaticamente. Em contêineres, use
-a imagem com target `migrations` antes de iniciar a API.
+a imagem com target `migrations` antes de iniciar a API:
+
+```powershell
+docker build `
+  --target migrations `
+  --secret "id=nuget_config,src=$env:APPDATA\NuGet\NuGet.Config" `
+  -t fcg-promotions-migrations:local .
+```
+
+Para criar a imagem da API sem gravar credenciais do GitHub Packages em camadas
+Docker, forneça um `NuGet.Config` autenticado como secret do BuildKit:
+
+```powershell
+docker build `
+  --secret "id=nuget_config,src=$env:APPDATA\NuGet\NuGet.Config" `
+  -t fcg-promotions:local .
+```
 
 ## Endpoints principais
 
