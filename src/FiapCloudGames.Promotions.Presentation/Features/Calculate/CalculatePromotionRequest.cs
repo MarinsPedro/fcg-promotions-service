@@ -4,10 +4,8 @@ namespace FiapCloudGames.Promotions.Presentation.Features.Calculate;
 
 public sealed record CalculatePromotionRequest(
     Guid GameId,
-    decimal BasePrice,
-    string Currency,
-    DateTimeOffset CalculatedAt)
+    decimal BasePrice)
 {
     public CalculatePromotionInput ToInput() =>
-        new(GameId, BasePrice, Currency, CalculatedAt);
+        new(GameId, BasePrice);
 }

@@ -168,9 +168,7 @@ consumido pelo Orders Service durante o fluxo de compra.
 ```json
 {
   "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
-  "basePrice": 99.90,
-  "currency": "BRL",
-  "calculatedAt": "2026-09-24T18:00:00Z"
+  "basePrice": 99.90
 }
 ```
 
@@ -178,35 +176,23 @@ consumido pelo Orders Service durante o fluxo de compra.
 |---|---|---|
 | `gameId` | UUID | Identificador do jogo (obtido do Catalog) |
 | `basePrice` | decimal | Preço-base do jogo (obtido do Catalog) |
-| `currency` | string | Código ISO da moeda |
-| `calculatedAt` | datetime UTC | Momento do cálculo (para verificar vigência da campanha) |
 
 **Response (200 OK):**
 
 ```json
 {
-  "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
-  "basePrice": 99.90,
-  "discount": 15.00,
-  "finalPrice": 84.90,
-  "currency": "BRL",
-  "appliedCampaignId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "appliedCampaignName": "Promoção de Inverno"
+  "finalPrice": 84.90
 }
 ```
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `gameId` | UUID | Mesmo ID recebido |
-| `basePrice` | decimal | Preço original |
-| `discount` | decimal | Valor do desconto aplicado (`0` se nenhuma campanha elegível) |
-| `finalPrice` | decimal | Preço final (`basePrice - discount`, mínimo `0`) |
-| `currency` | string | Moeda |
-| `appliedCampaignId` | UUID? | ID da campanha aplicada (`null` se nenhuma) |
-| `appliedCampaignName` | string? | Nome da campanha (`null` se nenhuma) |
+| `finalPrice` | decimal | Preço final com desconto aplicado (mínimo `0`) |
 
-Quando mais de uma campanha está vigente para o mesmo jogo, o serviço aplica
-a que resultar no maior desconto.
+O serviço verifica internamente a vigência das campanhas com base na data
+atual (UTC). Quando mais de uma campanha está vigente para o mesmo jogo,
+aplica a que resultar no maior desconto. Se nenhuma campanha for elegível,
+retorna o `basePrice` como `finalPrice`.
 
 ## Qualidade
 

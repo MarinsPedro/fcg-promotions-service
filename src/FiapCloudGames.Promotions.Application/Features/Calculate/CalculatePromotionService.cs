@@ -15,45 +15,31 @@ public sealed class CalculatePromotionService(ICampaignRepository campaigns)
                 [new AppError("O preço-base não pode ser negativo.", "basePrice")]);
         }
 
+        var nowUtc = DateTimeOffset.UtcNow;
+
         var eligible = await campaigns.FindEligibleAsync(
             input.GameId,
-            input.CalculatedAt,
+            nowUtc,
             cancellationToken);
 
         if (eligible.Count == 0)
         {
-            return new CalculatePromotionResult(
-                input.GameId,
-                input.BasePrice,
-                Discount: 0m,
-                FinalPrice: input.BasePrice,
-                input.Currency,
-                AppliedCampaignId: null,
-                AppliedCampaignName: null);
+            return new CalculatePromotionResult(FinalPrice: input.BasePrice);
         }
 
-        var bestCampaign = eligible[0];
-        var bestDiscount = bestCampaign.CalculateDiscount(input.BasePrice);
+        var bestDiscount = eligible[0].CalculateDiscount(input.BasePrice);
 
         for (var i = 1; i < eligible.Count; i++)
         {
             var discount = eligible[i].CalculateDiscount(input.BasePrice);
             if (discount > bestDiscount)
             {
-                bestCampaign = eligible[i];
                 bestDiscount = discount;
             }
         }
 
         var finalPrice = Math.Max(0m, input.BasePrice - bestDiscount);
 
-        return new CalculatePromotionResult(
-            input.GameId,
-            input.BasePrice,
-            Discount: bestDiscount,
-            FinalPrice: finalPrice,
-            input.Currency,
-            AppliedCampaignId: bestCampaign.Id,
-            AppliedCampaignName: bestCampaign.Name);
+        return new CalculatePromotionResult(FinalPrice: finalPrice);
     }
 }
