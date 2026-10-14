@@ -22,30 +22,30 @@ public sealed class CalculatePromotionService(ICampaignRepository campaigns)
         }
 
         var basePrice = decimal.Round(input.BasePrice, 2, MidpointRounding.ToEven);
+
+        var campaign = await campaigns.FindByIdAsync(input.PromotionId, cancellationToken)
+            ?? throw AppException.NotFound(
+                $"Promoção '{input.PromotionId}' não encontrada.");
+
+        if (!campaign.IsActive)
+        {
+            throw AppException.BusinessRule("A promoção informada está inativa.");
+        }
+
         var nowUtc = DateTimeOffset.UtcNow;
 
-        var eligible = await campaigns.FindEligibleAsync(
-            input.GameId,
-            nowUtc,
-            cancellationToken);
-
-        if (eligible.Count == 0)
+        if (nowUtc < campaign.StartDateUtc || nowUtc > campaign.EndDateUtc)
         {
-            return new CalculatePromotionResult(FinalPrice: basePrice);
+            throw AppException.BusinessRule("A promoção informada está fora do período de vigência.");
         }
 
-        var bestDiscount = eligible[0].CalculateDiscount(basePrice);
-
-        for (var i = 1; i < eligible.Count; i++)
+        if (campaign.GameId.HasValue && campaign.GameId.Value != input.GameId)
         {
-            var discount = eligible[i].CalculateDiscount(basePrice);
-            if (discount > bestDiscount)
-            {
-                bestDiscount = discount;
-            }
+            throw AppException.BusinessRule("A promoção informada não é elegível para este jogo.");
         }
 
-        var finalPrice = Math.Max(0m, basePrice - bestDiscount);
+        var discount = campaign.CalculateDiscount(basePrice);
+        var finalPrice = Math.Max(0m, basePrice - discount);
 
         return new CalculatePromotionResult(FinalPrice: finalPrice);
     }

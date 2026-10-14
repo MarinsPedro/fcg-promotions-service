@@ -160,22 +160,24 @@ aceitam chamadas anônimas.
 
 ## Contrato de cálculo de desconto
 
-O endpoint `POST /internal/v1/promotions/calculate` é o contrato principal
-consumido pelo Orders Service durante o fluxo de compra.
+O endpoint `POST /internal/v1/promotions/calculate` (`PostCalcularDesconto`) é o
+contrato principal consumido pelo Orders Service durante o fluxo de compra.
 
 **Request:**
 
 ```json
 {
   "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
-  "basePrice": 99.90
+  "basePrice": 99.90,
+  "promotionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
 }
 ```
 
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `gameId` | UUID | Identificador do jogo (obtido do Catalog) |
-| `basePrice` | decimal | Preço-base do jogo (obtido do Catalog) |
+| `basePrice` | decimal | Preço-base do jogo (obtido do Catalog). Máximo `9999999999.99`, arredondado para 2 casas |
+| `promotionId` | UUID | Identificador da promoção (campanha) a ser aplicada |
 
 **Response (200 OK):**
 
@@ -189,10 +191,13 @@ consumido pelo Orders Service durante o fluxo de compra.
 |---|---|---|
 | `finalPrice` | decimal | Preço final com desconto aplicado (mínimo `0`) |
 
-O serviço verifica internamente a vigência das campanhas com base na data
-atual (UTC). Quando mais de uma campanha está vigente para o mesmo jogo,
-aplica a que resultar no maior desconto. Se nenhuma campanha for elegível,
-retorna o `basePrice` como `finalPrice`.
+**Respostas de erro:**
+
+| Status | Cenário |
+|---|---|
+| `400` | `basePrice` negativo ou acima do teto |
+| `404` | `promotionId` não encontrada |
+| `422` | Promoção inativa, fora do período de vigência, ou não elegível para o jogo |
 
 ## Qualidade
 
