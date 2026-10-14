@@ -34,6 +34,14 @@ docs/
   configuration.md
   endpoints.md
   testing.md
+k8s/
+  base/
+    namespace.yaml       namespace fcg
+    configmap.yaml       configurações não-sensíveis
+    secret.yaml          connection string e credenciais
+    deployment.yaml      Deployment da API
+    service.yaml         Service ClusterIP (porta 80 → 8080)
+    kustomization.yaml   agregador dos recursos
 ```
 
 As regras e exemplos da estrutura estão em [docs/architecture.md](docs/architecture.md).
@@ -112,6 +120,33 @@ Para derrubar tudo e limpar os volumes:
 ```powershell
 docker compose down -v
 ```
+
+## Deploy em Kubernetes
+
+Os manifests ficam em `k8s/base/` e usam Kustomize (embutido no `kubectl`).
+
+1. Construa a imagem e carregue no cluster local (exemplo com Kind):
+
+```powershell
+docker build --secret "id=nuget_config,src=$env:APPDATA\NuGet\NuGet.Config" -t fcg-promotions:latest .
+kind load docker-image fcg-promotions:latest
+```
+
+2. Antes de aplicar, edite `k8s/base/secret.yaml` com a connection string real.
+
+3. Aplique os manifests:
+
+```powershell
+kubectl apply -k k8s/base/
+```
+
+4. Verifique se os Pods estão rodando:
+
+```powershell
+kubectl get pods -n fcg -l app=promotions-api
+```
+
+Dentro do cluster, outros serviços acessam via `http://promotions-api:80`.
 
 ## Execução local sem Docker
 
