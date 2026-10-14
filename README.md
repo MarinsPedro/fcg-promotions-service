@@ -10,7 +10,7 @@ Este repositório é independente do monólito. Ele possui banco, migrations, pi
 - descontos fixos ou percentuais;
 - período de vigência e elegibilidade por jogo;
 - cálculo do desconto sobre um preço-base recebido;
-- retorno do preço final e da promoção aplicada.
+- retorno do preço final ao serviço consumidor.
 
 Promotions **não** consulta o banco do Catalog. O chamador (Orders) fornece o preço-base obtido do Catalog.
 
@@ -158,6 +158,60 @@ a imagem com target `migrations` antes de iniciar a API.
 Todos os endpoints de negócio são autenticados por padrão. Somente health checks
 aceitam chamadas anônimas.
 
+## Contratos dos endpoints de campanha
+
+### Criar campanha — `POST /internal/v1/campaigns`
+
+**Request:**
+
+```json
+{
+  "name": "Promoção de Inverno",
+  "discountType": 1,
+  "discountValue": 15.00,
+  "startDateUtc": "2026-10-01T00:00:00Z",
+  "endDateUtc": "2026-10-31T23:59:59Z",
+  "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44"
+}
+```
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `name` | string | Nome da campanha (3 a 200 caracteres) |
+| `discountType` | int | `1` = Fixed, `2` = Percentage |
+| `discountValue` | decimal | Valor do desconto. Fixo: máximo `9999999999.99`. Percentual: máximo `100` |
+| `startDateUtc` | datetime UTC | Início da vigência |
+| `endDateUtc` | datetime UTC | Fim da vigência (deve ser posterior ao início) |
+| `gameId` | UUID? | Jogo específico elegível. `null` = todos os jogos |
+
+**Response (201 Created):**
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Promoção de Inverno",
+  "discountType": "Fixed",
+  "discountValue": 15.00,
+  "startDateUtc": "2026-10-01T00:00:00+00:00",
+  "endDateUtc": "2026-10-31T23:59:59+00:00",
+  "gameId": "80fdc742-e7c1-4564-a269-8d52784bec44",
+  "isActive": true,
+  "createdAtUtc": "2026-10-14T01:30:00+00:00"
+}
+```
+
+### Consultar campanha — `GET /internal/v1/campaigns/{campaignId}`
+
+**Response (200 OK):** mesmo formato do `201 Created` acima.
+
+Retorna `404` se a campanha não existir.
+
+### Desativar campanha — `DELETE /internal/v1/campaigns/{campaignId}`
+
+**Response:** `204 No Content`.
+
+Retorna `404` se a campanha não existir.
+
 ## Contrato de cálculo de desconto
 
 O endpoint `POST /internal/v1/promotions/calculate` (`PostCalcularDesconto`) é o
@@ -206,3 +260,10 @@ dotnet build FiapCloudGames.Promotions.slnx -c Release
 dotnet test FiapCloudGames.Promotions.slnx -c Release --no-build
 dotnet format FiapCloudGames.Promotions.slnx --verify-no-changes --no-restore
 ```
+
+## Segurança operacional
+
+- armazene segredos e connection strings em variáveis de ambiente ou secret manager, nunca em Git;
+- não registre tokens JWT, segredos ou connection strings em logs;
+- revogue imediatamente qualquer token pessoal do GitHub que tenha sido exposto;
+- substitua as credenciais locais conhecidas fora de `Development`.
