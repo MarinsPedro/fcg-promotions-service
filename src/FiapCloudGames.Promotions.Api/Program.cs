@@ -20,6 +20,21 @@ app.UseFiapApiDefaults();
 app.UsePromotionsOpenApi();
 app.UseAuthentication();
 
+#if DEBUG
+
+// Verificação: middleware para logar se o usuário está autenticado e quais suas claims.
+app.Use(async (context, next) =>
+{
+    var authenticated = context.User.Identity?.IsAuthenticated;
+    var claims = context.User.Claims
+        .Select(claim => new { claim.Type, claim.Value })
+        .ToArray();
+
+    await next();
+});
+
+#endif
+
 app.UseAuthorization();
 app.MapFiapHealthEndpoints();
 app.MapControllers();
