@@ -1,4 +1,4 @@
-using FiapCloudGames.BuildingBlocks.Authentication;
+﻿using FiapCloudGames.BuildingBlocks.Authentication;
 using FiapCloudGames.Promotions.Application;
 using FiapCloudGames.Promotions.Application.Abstractions.Persistence;
 using FiapCloudGames.Promotions.Domain.Campaigns;
@@ -32,14 +32,6 @@ public static class DependencyInjection
                 "promotions-database",
                 tags: ["ready"]);
 
-        AddAuthentication(services, configuration);
         return services;
-    }
-
-    private static void AddAuthentication(
-        IServiceCollection services,
-        IConfiguration configuration)
-    {
-        services.AddFiapServiceAuthentication(configuration);
     }
 }
