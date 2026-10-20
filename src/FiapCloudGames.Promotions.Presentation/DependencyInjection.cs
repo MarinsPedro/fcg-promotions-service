@@ -1,6 +1,5 @@
-using FiapCloudGames.BuildingBlocks.Authentication;
+﻿using FiapCloudGames.BuildingBlocks.Authentication;
 using FiapCloudGames.Promotions.Presentation.Authorization;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FiapCloudGames.Promotions.Presentation;
@@ -20,19 +19,19 @@ public static class DependencyInjection
                 policy => policy
                     .RequireAuthenticatedUser()
                     .RequireServiceToken()
-                    .RequireClaim(FiapClaimTypes.Scope, "promotions.campaigns.read"));
+                    .RequireScopes("promotions.campaigns.read"));
             options.AddPolicy(
                 PromotionsPolicies.CampaignsWrite,
                 policy => policy
                     .RequireAuthenticatedUser()
                     .RequireServiceToken()
-                    .RequireClaim(FiapClaimTypes.Scope, "promotions.campaigns.write"));
+                    .RequireScopes("promotions.campaigns.write"));
             options.AddPolicy(
                 PromotionsPolicies.Calculate,
                 policy => policy
                     .RequireAuthenticatedUser()
                     .RequireServiceToken()
-                    .RequireClaim(FiapClaimTypes.Scope, "promotions.calculate"));
+                    .RequireScopes("promotions.calculate"));
         });
 
         return services;
