@@ -1,4 +1,4 @@
-using FiapCloudGames.Promotions.Application.Features.Campaigns.Create;
+﻿using FiapCloudGames.Promotions.Application.Features.Campaigns.Create;
 using FiapCloudGames.Promotions.Application.Features.Campaigns.Deactivate;
 using FiapCloudGames.Promotions.Application.Features.Campaigns.Get;
 using FiapCloudGames.Promotions.Presentation.Authorization;
@@ -12,6 +12,8 @@ namespace FiapCloudGames.Promotions.Presentation.Features.Campaigns;
 [Route("internal/v1/campaigns")]
 public sealed class CampaignController : ControllerBase
 {
+    private const string GetByIdRoute = "Promotions.Catalog.GetByIdAsync";
+
     [HttpPost]
     [Authorize(Policy = PromotionsPolicies.CampaignsWrite)]
     [ProducesResponseType<CampaignResponse>(StatusCodes.Status201Created)]
@@ -22,10 +24,10 @@ public sealed class CampaignController : ControllerBase
     {
         var result = await service.ExecuteAsync(request.ToInput(), cancellationToken);
         var response = CampaignResponse.FromResult(result);
-        return CreatedAtAction(nameof(GetAsync), new { campaignId = response.Id }, response);
+        return CreatedAtRoute(GetByIdRoute, new { campaignId = response.Id }, response);
     }
 
-    [HttpGet("{campaignId:guid}")]
+    [HttpGet("{campaignId:guid}", Name = GetByIdRoute)]
     [Authorize(Policy = PromotionsPolicies.CampaignsRead)]
     [ProducesResponseType<CampaignResponse>(StatusCodes.Status200OK)]
     public async Task<ActionResult<CampaignResponse>> GetAsync(
