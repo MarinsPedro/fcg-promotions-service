@@ -39,6 +39,11 @@ k8s/
     namespace.yaml       namespace fcg
     configmap.yaml       configurações não-sensíveis
     secret.yaml          connection string e credenciais
+    db-secret.yaml       credenciais do PostgreSQL (iguais às do secret.yaml)
+    db-pvc.yaml          volume persistente do banco (1Gi)
+    db-deployment.yaml   Deployment do PostgreSQL 17 (promotions-db)
+    db-service.yaml      Service ClusterIP do banco (porta 5432)
+    migrations-job.yaml  Job que aplica as migrations e termina
     deployment.yaml      Deployment da API
     service.yaml         Service ClusterIP (porta 80 → 8080)
     kustomization.yaml   agregador dos recursos
@@ -129,7 +134,8 @@ Os manifests ficam em `k8s/base/` e usam Kustomize (embutido no `kubectl`).
 
 ```powershell
 docker build --secret "id=nuget_config,src=$env:APPDATA\NuGet\NuGet.Config" -t fcg-promotions:latest .
-kind load docker-image fcg-promotions:latest
+docker build --target migrations --secret "id=nuget_config,src=$env:APPDATA\NuGet\NuGet.Config" -t fcg-promotions-migrations:latest .
+kind load docker-image fcg-promotions:latest fcg-promotions-migrations:latest
 ```
 
 2. Antes de aplicar, edite `k8s/base/secret.yaml` com a connection string real.

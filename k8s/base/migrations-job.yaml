@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: promotions-migrations
+  namespace: fcg
+  labels:
+    app: promotions-migrations
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: promotions-migrations
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: migrations
+          image: fcg-promotions-migrations:latest
+          envFrom:
+            - secretRef:
+                name: promotions-secret
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi

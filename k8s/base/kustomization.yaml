@@ -7,5 +7,10 @@ resources:
   - namespace.yaml
   - configmap.yaml
   - secret.yaml
+  - db-secret.yaml
+  - db-pvc.yaml
+  - db-deployment.yaml
+  - db-service.yaml
+  - migrations-job.yaml
   - deployment.yaml
   - service.yaml
