@@ -140,7 +140,9 @@ kind load docker-image fcg-promotions:latest fcg-promotions-migrations:latest
 
 2. Antes de aplicar, edite `k8s/base/secret.yaml` (connection string) e
    `k8s/base/db-secret.yaml` (credenciais do PostgreSQL). A senha precisa ser a
-   mesma nos dois arquivos.
+   mesma nos dois arquivos. As senhas que vêm nesses arquivos são valores de
+   estudo, só para o cluster local; em qualquer outro ambiente, substitua-as e
+   não as versione.
 
 3. Aplique os manifests. Além da API, eles criam o banco (`promotions-db`, com
    volume persistente) e o Job `promotions-migrations`, que cria as tabelas:
