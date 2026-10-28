@@ -138,21 +138,33 @@ docker build --target migrations --secret "id=nuget_config,src=$env:APPDATA\NuGe
 kind load docker-image fcg-promotions:latest fcg-promotions-migrations:latest
 ```
 
-2. Antes de aplicar, edite `k8s/base/secret.yaml` com a connection string real.
+2. Antes de aplicar, edite `k8s/base/secret.yaml` (connection string) e
+   `k8s/base/db-secret.yaml` (credenciais do PostgreSQL). A senha precisa ser a
+   mesma nos dois arquivos.
 
-3. Aplique os manifests:
+3. Aplique os manifests. Além da API, eles criam o banco (`promotions-db`, com
+   volume persistente) e o Job `promotions-migrations`, que cria as tabelas:
 
 ```powershell
 kubectl apply -k k8s/base/
 ```
 
-4. Verifique se os Pods estão rodando:
+4. Verifique os recursos:
 
 ```powershell
-kubectl get pods -n fcg -l app=promotions-api
+kubectl get pods,jobs -n fcg -l "app in (promotions-api, promotions-db, promotions-migrations)"
 ```
 
-Dentro do cluster, outros serviços acessam via `http://promotions-api:80`.
+Devem aparecer `promotions-db` e `promotions-api` em `Running` e o Job
+`promotions-migrations` em `Completed`. Para ver o resultado das migrations:
+
+```powershell
+kubectl logs -n fcg job/promotions-migrations
+```
+
+Dentro do cluster, outros serviços acessam via `http://promotions-api:80`. Os
+manifests esperam um Service `identity-api` no namespace `fcg` para validar os
+tokens; veja [docs/configuration.md](docs/configuration.md).
 
 ## Execução local sem Docker
 

@@ -17,7 +17,8 @@ carrega o `appsettings.json`, o arquivo específico do ambiente, variáveis de
 ambiente e argumentos de linha de comando.
 
 A API não executa migrations no startup. O migrador deve terminar com sucesso
-antes do processo da API ou do rollout do deployment.
+antes do processo da API ou do rollout do deployment. No Kubernetes, quem faz
+isso é o Job `promotions-migrations` (veja a seção Kubernetes).
 
 ## Autenticação JWT
 
@@ -43,6 +44,30 @@ via JWKS e a mantém em cache.
 | `ASPNETCORE_ENVIRONMENT` | Ambiente da aplicação | `Development` |
 | `GITHUB_PACKAGES_USERNAME` | Usuário para GitHub Packages (somente restore) | `MarinsPedro` |
 | `GITHUB_PACKAGES_TOKEN` | PAT com `read:packages` (somente restore) | — |
+
+## Kubernetes
+
+Em `k8s/base/` a configuração é separada em ConfigMap e Secrets:
+
+| Recurso | Conteúdo |
+|---|---|
+| `promotions-config` (ConfigMap) | `ASPNETCORE_ENVIRONMENT`, `Authentication__Authority` (`http://identity-api:8080`) e `Authentication__Audience` |
+| `promotions-secret` (Secret) | `ConnectionStrings__Database` |
+| `promotions-db-secret` (Secret) | `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD`, usados só pelo contêiner do PostgreSQL |
+
+Os dados do `promotions-db-secret` precisam ser iguais aos da connection string
+do `promotions-secret` (banco `fcg_promotions`, usuário `fcg_promotions_app` e a
+mesma senha). Se divergirem, a API e as migrations não autenticam no banco.
+
+O banco roda como Deployment (`promotions-db`, PostgreSQL 17) com volume
+persistente de 1Gi (`promotions-db-data`), que exige uma StorageClass padrão no
+cluster. As tabelas são criadas pelo Job `promotions-migrations` (imagem
+`fcg-promotions-migrations`), que tenta até 10 vezes enquanto o banco sobe.
+
+O Identity não faz parte destes manifests: o ConfigMap espera um Service chamado
+`identity-api` no namespace `fcg`. Os clientes que chamam o Promotions (como o
+Orders) precisam estar cadastrados no Identity com a audience `promotions-api` e
+os scopes `promotions.calculate` e `promotions.campaigns.read`.
 
 ## Health checks
 
