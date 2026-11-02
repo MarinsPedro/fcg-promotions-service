@@ -4,6 +4,11 @@ namespace FiapCloudGames.Promotions.Domain.Campaigns;
 
 public sealed class Campaign
 {
+    public const int NameMinimumLength = 3;
+    public const int NameMaximumLength = 200;
+    public const decimal MaximumPercentageDiscount = 100m;
+    public const decimal MaximumMonetaryValue = 9999999999.99m;
+
     private Campaign() { }
 
     private Campaign(
@@ -28,12 +33,14 @@ public sealed class Campaign
             throw new DomainRuleViolationException("O valor do desconto deve ser maior que zero.");
         }
 
-        if (discountType == DiscountType.Percentage && discountValue > 100)
+        if (discountType == DiscountType.Percentage &&
+            discountValue > MaximumPercentageDiscount)
         {
             throw new DomainRuleViolationException("O percentual de desconto não pode exceder 100.");
         }
 
-        if (discountType == DiscountType.Fixed && discountValue > 9999999999.99m)
+        if (discountType == DiscountType.Fixed &&
+            discountValue > MaximumMonetaryValue)
         {
             throw new DomainRuleViolationException("O valor do desconto fixo não pode ser maior que 9999999999.99.");
         }
@@ -42,6 +49,12 @@ public sealed class Campaign
         ValidatePeriod(startDateUtc, endDateUtc);
         StartDateUtc = startDateUtc;
         EndDateUtc = endDateUtc;
+        if (gameId == Guid.Empty)
+        {
+            throw new DomainRuleViolationException(
+                "O identificador do jogo deve ser válido quando informado.");
+        }
+
         GameId = gameId;
         IsActive = true;
         CreatedAtUtc = createdAtUtc != default && createdAtUtc.Offset == TimeSpan.Zero
@@ -69,25 +82,57 @@ public sealed class Campaign
         DateTimeOffset createdAtUtc) =>
         new(Guid.NewGuid(), name, discountType, discountValue, startDateUtc, endDateUtc, gameId, createdAtUtc);
 
-    public bool IsEligible(Guid gameId, DateTimeOffset nowUtc) =>
-        IsActive &&
-        nowUtc >= StartDateUtc &&
-        nowUtc <= EndDateUtc &&
-        (!GameId.HasValue || GameId.Value == gameId);
+    public CampaignEligibility GetEligibility(Guid gameId, DateTimeOffset nowUtc)
+    {
+        if (!IsActive)
+        {
+            return CampaignEligibility.Inactive;
+        }
 
-    public decimal CalculateDiscount(decimal basePrice) =>
-        DiscountType switch
+        if (nowUtc < StartDateUtc || nowUtc > EndDateUtc)
+        {
+            return CampaignEligibility.OutsideValidityPeriod;
+        }
+
+        if (gameId == Guid.Empty ||
+            GameId.HasValue && GameId.Value != gameId)
+        {
+            return CampaignEligibility.GameNotEligible;
+        }
+
+        return CampaignEligibility.Eligible;
+    }
+
+    public bool IsEligible(Guid gameId, DateTimeOffset nowUtc) =>
+        GetEligibility(gameId, nowUtc) == CampaignEligibility.Eligible;
+
+    public decimal CalculateDiscount(decimal basePrice)
+    {
+        if (basePrice < 0 || basePrice > MaximumMonetaryValue)
+        {
+            throw new DomainRuleViolationException(
+                "O preço-base deve estar entre 0 e 9999999999.99.");
+        }
+
+        return DiscountType switch
         {
             DiscountType.Fixed => Math.Min(DiscountValue, basePrice),
             DiscountType.Percentage => Math.Round(basePrice * DiscountValue / 100m, 2, MidpointRounding.ToEven),
-            _ => 0m
+            _ => throw new DomainRuleViolationException(
+                "O tipo de desconto da campanha é inválido.")
         };
+    }
 
     public void ChangeName(string name)
     {
-        Name = name?.Trim() is { Length: >= 3 and <= 200 } normalized
+        Name = name?.Trim() is
+        {
+            Length: >= NameMinimumLength and <= NameMaximumLength
+        } normalized
             ? normalized
-            : throw new DomainRuleViolationException("O nome da campanha deve ter entre 3 e 200 caracteres.");
+            : throw new DomainRuleViolationException(
+                $"O nome da campanha deve ter entre {NameMinimumLength} e " +
+                $"{NameMaximumLength} caracteres.");
     }
 
     public void Deactivate() => IsActive = false;

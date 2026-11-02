@@ -1,25 +1,24 @@
 using FiapCloudGames.BuildingBlocks.Exceptions;
 using FiapCloudGames.Promotions.Domain.Campaigns;
+using FiapCloudGames.Promotions.Domain.Common;
+using Microsoft.Extensions.Logging;
 
 namespace FiapCloudGames.Promotions.Application.Features.Calculate;
 
-public sealed class CalculatePromotionService(ICampaignRepository campaigns)
+public sealed class CalculatePromotionService(
+    ICampaignRepository campaigns,
+    TimeProvider clock,
+    ILogger<CalculatePromotionService> logger)
 {
     public async Task<CalculatePromotionResult> ExecuteAsync(
         CalculatePromotionInput input,
         CancellationToken cancellationToken)
     {
-        if (input.BasePrice < 0)
-        {
-            throw AppException.Validation(
-                [new AppError("O preço-base não pode ser negativo.", "basePrice")]);
-        }
-
-        if (input.BasePrice > 9999999999.99m)
-        {
-            throw AppException.Validation(
-                [new AppError("O preço-base não pode ser maior que 9999999999.99.", "basePrice")]);
-        }
+        ArgumentNullException.ThrowIfNull(input);
+        logger.LogDebug(
+            "Calculando promoção {PromotionId} para o jogo {GameId}.",
+            input.PromotionId,
+            input.GameId);
 
         var basePrice = decimal.Round(input.BasePrice, 2, MidpointRounding.ToEven);
 
@@ -27,25 +26,37 @@ public sealed class CalculatePromotionService(ICampaignRepository campaigns)
             ?? throw AppException.NotFound(
                 $"Promoção '{input.PromotionId}' não encontrada.");
 
-        if (!campaign.IsActive)
+        decimal discount;
+
+        try
         {
-            throw AppException.BusinessRule("A promoção informada está inativa.");
+            discount = campaign.CalculateDiscount(basePrice);
+        }
+        catch (DomainRuleViolationException exception)
+        {
+            throw AppException.Validation(exception.Message);
         }
 
-        var nowUtc = DateTimeOffset.UtcNow;
+        var nowUtc = clock.GetUtcNow();
 
-        if (nowUtc < campaign.StartDateUtc || nowUtc > campaign.EndDateUtc)
+        switch (campaign.GetEligibility(input.GameId, nowUtc))
         {
-            throw AppException.BusinessRule("A promoção informada está fora do período de vigência.");
+            case CampaignEligibility.Inactive:
+                throw AppException.BusinessRule("A promoção informada está inativa.");
+            case CampaignEligibility.OutsideValidityPeriod:
+                throw AppException.BusinessRule(
+                    "A promoção informada está fora do período de vigência.");
+            case CampaignEligibility.GameNotEligible:
+                throw AppException.BusinessRule(
+                    "A promoção informada não é elegível para este jogo.");
         }
 
-        if (campaign.GameId.HasValue && campaign.GameId.Value != input.GameId)
-        {
-            throw AppException.BusinessRule("A promoção informada não é elegível para este jogo.");
-        }
-
-        var discount = campaign.CalculateDiscount(basePrice);
         var finalPrice = Math.Max(0m, basePrice - discount);
+
+        logger.LogDebug(
+            "Promoção {PromotionId} calculada para o jogo {GameId}.",
+            campaign.Id,
+            input.GameId);
 
         return new CalculatePromotionResult(FinalPrice: finalPrice);
     }

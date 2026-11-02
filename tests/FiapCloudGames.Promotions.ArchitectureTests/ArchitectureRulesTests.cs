@@ -130,6 +130,9 @@ public sealed class ArchitectureRulesTests
         var references = XDocument.Load(projectPath)
             .Descendants("ProjectReference")
             .Select(element => Path.GetFileNameWithoutExtension((string?)element.Attribute("Include")))
+            .Where(name => name?.StartsWith(
+                "FiapCloudGames.Promotions.",
+                StringComparison.Ordinal) is true)
             .Select(name => name?.Split('.').Last())
             .Where(name => name is not null)
             .Order(StringComparer.Ordinal)

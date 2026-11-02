@@ -15,7 +15,7 @@ public sealed class CalculatePromotionController : ControllerBase
     [ProducesResponseType<CalculatePromotionResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<ActionResult<CalculatePromotionResponse>> PostCalcularDesconto(
+    public async Task<ActionResult<CalculatePromotionResponse>> CalculateAsync(
         [FromBody] CalculatePromotionRequest request,
         [FromServices] CalculatePromotionService service,
         CancellationToken cancellationToken)

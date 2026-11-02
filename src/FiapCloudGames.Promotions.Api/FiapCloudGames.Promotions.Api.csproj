@@ -2,7 +2,8 @@
   <ItemGroup>
     <ProjectReference Include="../FiapCloudGames.Promotions.Infrastructure/FiapCloudGames.Promotions.Infrastructure.csproj" />
     <ProjectReference Include="../FiapCloudGames.Promotions.Presentation/FiapCloudGames.Promotions.Presentation.csproj" />
-    <PackageReference Include="FiapCloudGames.BuildingBlocks" />
+    <ProjectReference Include="$(LocalBuildingBlocksProject)" Condition="'$(UseLocalBuildingBlocks)' == 'true'" />
+    <PackageReference Include="FiapCloudGames.BuildingBlocks" Condition="'$(UseLocalBuildingBlocks)' != 'true'" />
     <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 </Project>

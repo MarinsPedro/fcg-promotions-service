@@ -22,6 +22,7 @@ public static class DependencyInjection
                 "A connection string 'Database' não foi configurada.");
 
         services.AddPromotionsApplication();
+        services.AddFiapServiceAuthentication(configuration);
         services.AddDbContext<PromotionsDbContext>(options =>
             options.UseNpgsql(connectionString));
         services.AddScoped<IPromotionsUnitOfWork>(provider =>

@@ -12,7 +12,7 @@ namespace FiapCloudGames.Promotions.Presentation.Features.Campaigns;
 [Route("internal/v1/campaigns")]
 public sealed class CampaignController : ControllerBase
 {
-    private const string GetByIdRoute = "Promotions.Catalog.GetByIdAsync";
+    private const string GetByIdRoute = "Promotions.Campaigns.GetById";
 
     [HttpPost]
     [Authorize(Policy = PromotionsPolicies.CampaignsWrite)]
