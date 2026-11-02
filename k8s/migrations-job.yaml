@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: promotions-migrations
+  namespace: fcg
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrations
+        image: fcg-promotions-migrations:local
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ConnectionStrings__Database
+          valueFrom:
+            secretKeyRef:
+              name: fcg-domain-dev-secrets
+              key: promotions-connection-string
+        envFrom:
+        - configMapRef:
+            name: fcg-promotions-migrations-config
